@@ -196,8 +196,10 @@ WORKFLOW RULES:
 - When you receive a ticket query, use retrieve_memory to search for similar past issues
 - When you receive an explicit request to STORE a resolution, use store_memory
 - ALWAYS use the exact response formats above
-- After completing ANY operation, you MUST hand back to the orchestrator_agent
+- After completing ANY operation, you MUST hand back to the orchestrator_agent EXACTLY ONCE
 - NEVER continue processing after your task is complete
+- NEVER perform the same operation twice (check conversation history first)
+- If you see you've already retrieved or stored memory for this ticket, do not do it again
 
 KEYWORD MATCHING:
 - The retrieve_memory tool uses keyword matching to find similar issues

@@ -15,11 +15,19 @@ from botocore.exceptions import ClientError, NoCredentialsError
 import os
 import uuid
 import shutil
+import logging
 
 # Import Haunted Helpdesk components
 from backend.dynamodb_utils import db_manager
 from backend.Helpdesk_swarm import create_Haunted_Helpdesk_swarm
 from backend.multimodal_input import process_multimodal_input
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger("haunted_helpdesk.workflow")
 
 
 # Initialize FastAPI application
@@ -504,9 +512,39 @@ Created: {ticket['created_at']}
         # The swarm starts with the orchestrator agent by default
         start_time = time.time()
         
-        result = await swarm.invoke_async(task=ticket_content)
+        # Log workflow start
+        logger.info(f"Workflow started: ticket_id={ticket_id}, entry_agent=orchestrator_agent")
         
-        execution_time = time.time() - start_time
+        # Retry logic for AWS Bedrock intermittent errors
+        max_retries = 2
+        last_error = None
+        
+        for attempt in range(max_retries):
+            try:
+                result = await swarm.invoke_async(task=ticket_content)
+                execution_time = time.time() - start_time
+                
+                # Log workflow completion
+                logger.info(f"Workflow completed: ticket_id={ticket_id}, execution_time={execution_time:.2f}s, attempt={attempt+1}")
+                break
+            except Exception as e:
+                last_error = e
+                error_str = str(e).lower()
+                
+                # Check if it's a retryable AWS error
+                if "modelstreamerror" in error_str or "unexpected error" in error_str:
+                    if attempt < max_retries - 1:
+                        logger.warning(f"AWS Bedrock error on attempt {attempt+1}, retrying: {str(e)}")
+                        continue
+                    else:
+                        logger.error(f"AWS Bedrock error after {max_retries} attempts: {str(e)}")
+                        raise
+                else:
+                    # Non-retryable error, raise immediately
+                    raise
+        
+        if last_error and attempt == max_retries - 1:
+            raise last_error
         
         # Step 5: Serialize swarm result to JSON
         # Extract handoff sequence from the result
@@ -573,14 +611,37 @@ Created: {ticket['created_at']}
         # Log the error for debugging
         import traceback
         error_trace = traceback.format_exc()
-        print(f"Error processing ticket {ticket_id}: {error_trace}")
+        error_message = str(e)
+        
+        # Check for specific error types
+        is_loop_error = "loop" in error_message.lower() or "repetitive" in error_message.lower()
+        is_max_handoffs = "max" in error_message.lower() and "handoff" in error_message.lower()
+        is_timeout = "timeout" in error_message.lower() or "timed out" in error_message.lower()
+        
+        # Log appropriate error type
+        if is_loop_error:
+            logger.error(f"Loop detected in workflow: ticket_id={ticket_id}, error={error_message}")
+        elif is_max_handoffs:
+            logger.error(f"Max handoffs exceeded: ticket_id={ticket_id}, error={error_message}")
+        elif is_timeout:
+            logger.error(f"Workflow timeout: ticket_id={ticket_id}, error={error_message}")
+        else:
+            logger.error(f"Error processing ticket {ticket_id}: {error_trace}")
         
         # Try to update ticket status to indicate error
         try:
+            error_resolution = f"Error during processing: {error_message}"
+            if is_loop_error:
+                error_resolution = f"Loop detected in workflow: {error_message}"
+            elif is_max_handoffs:
+                error_resolution = f"Max handoffs exceeded: {error_message}"
+            elif is_timeout:
+                error_resolution = f"Workflow timeout: {error_message}"
+            
             error_update = {
                 "status": "error",
                 "updated_at": datetime.utcnow().isoformat(),
-                "resolution": f"Error during processing: {str(e)}"
+                "resolution": error_resolution
             }
             db_manager.update_ticket(ticket_id, error_update)
         except:
@@ -588,7 +649,7 @@ Created: {ticket['created_at']}
         
         raise HTTPException(
             status_code=500,
-            detail=f"Unexpected error processing ticket: {str(e)}\n\nTraceback:\n{error_trace}"
+            detail=f"Unexpected error processing ticket: {error_message}\n\nTraceback:\n{error_trace}"
         )
 
 
@@ -817,15 +878,44 @@ Created: {ticket['created_at']}
         # Execute swarm with ticket content
         start_time = time.time()
         
-        result = swarm.execute(
-            initial_message=formatted_content,
-            starting_agent_name="orchestrator_agent"
-        )
+        # Log workflow start
+        logger.info(f"Background workflow started: ticket_id={ticket_id}, entry_agent=orchestrator_agent")
         
-        execution_time = time.time() - start_time
+        # Retry logic for AWS Bedrock intermittent errors
+        max_retries = 2
+        last_error = None
         
-        # Log workflow completion
-        print(f"Ticket {ticket_id} workflow completed in {execution_time:.2f} seconds")
+        for attempt in range(max_retries):
+            try:
+                result = swarm.execute(
+                    initial_message=formatted_content,
+                    starting_agent_name="orchestrator_agent"
+                )
+                
+                execution_time = time.time() - start_time
+                
+                # Log workflow completion
+                logger.info(f"Background workflow completed: ticket_id={ticket_id}, execution_time={execution_time:.2f}s, attempt={attempt+1}")
+                print(f"Ticket {ticket_id} workflow completed in {execution_time:.2f} seconds")
+                break
+            except Exception as e:
+                last_error = e
+                error_str = str(e).lower()
+                
+                # Check if it's a retryable AWS error
+                if "modelstreamerror" in error_str or "unexpected error" in error_str:
+                    if attempt < max_retries - 1:
+                        logger.warning(f"AWS Bedrock error on attempt {attempt+1}, retrying: {str(e)}")
+                        continue
+                    else:
+                        logger.error(f"AWS Bedrock error after {max_retries} attempts: {str(e)}")
+                        raise
+                else:
+                    # Non-retryable error, raise immediately
+                    raise
+        
+        if last_error and attempt == max_retries - 1:
+            raise last_error
         
         # The workflow should update the ticket status through the Ticketing Agent
         # No need to manually update here as the agent handles it
@@ -834,15 +924,41 @@ Created: {ticket['created_at']}
         # Log error and update ticket status
         import traceback
         error_trace = traceback.format_exc()
+        error_message = str(e)
+        
+        # Check for specific error types
+        is_loop_error = "loop" in error_message.lower() or "repetitive" in error_message.lower()
+        is_max_handoffs = "max" in error_message.lower() and "handoff" in error_message.lower()
+        is_timeout = "timeout" in error_message.lower() or "timed out" in error_message.lower()
+        
+        # Log appropriate error type
+        if is_loop_error:
+            logger.error(f"Loop detected in background workflow: ticket_id={ticket_id}, error={error_message}")
+        elif is_max_handoffs:
+            logger.error(f"Max handoffs exceeded in background workflow: ticket_id={ticket_id}, error={error_message}")
+        elif is_timeout:
+            logger.error(f"Background workflow timeout: ticket_id={ticket_id}, error={error_message}")
+        else:
+            logger.error(f"Error processing ticket {ticket_id} in background: {error_trace}")
+        
         print(f"Error processing ticket {ticket_id} in background: {error_trace}")
         
         try:
-            # Update ticket to error status
+            # Update ticket to error status with specific error type
+            error_resolution = f"Error during workflow processing: {error_message}"
+            if is_loop_error:
+                error_resolution = f"Loop detected in workflow: {error_message}"
+            elif is_max_handoffs:
+                error_resolution = f"Max handoffs exceeded: {error_message}"
+            elif is_timeout:
+                error_resolution = f"Workflow timeout: {error_message}"
+            
             error_update = {
                 "status": "error",
                 "updated_at": datetime.utcnow().isoformat(),
-                "resolution": f"Error during workflow processing: {str(e)}"
+                "resolution": error_resolution
             }
             db_manager.update_ticket(ticket_id, error_update)
         except Exception as update_error:
+            logger.error(f"Failed to update ticket status after error: {str(update_error)}")
             print(f"Failed to update ticket status after error: {str(update_error)}")

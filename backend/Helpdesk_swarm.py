@@ -48,11 +48,11 @@ def create_Haunted_Helpdesk_swarm() -> Swarm:
             summarization
         ],
         entry_point=orchestrator,
-        max_handoffs=20,  # Maximum number of agent handoffs before termination
-        max_iterations=25,  # Maximum iterations per agent
-        execution_timeout=600.0,  # Total workflow timeout in seconds (10 minutes)
-        node_timeout=120.0,  # Individual agent timeout in seconds (2 minutes)
-        repetitive_handoff_detection_window=4,  # Window size for detecting loops
+        max_handoffs=12,  # Maximum number of agent handoffs before termination
+        max_iterations=15,  # Maximum iterations per agent
+        execution_timeout=120.0,  # Total workflow timeout in seconds (2 minutes)
+        node_timeout=90.0,  # Individual agent timeout in seconds (90 seconds - agents need time for diagnostics)
+        repetitive_handoff_detection_window=3,  # Window size for detecting loops (reduced from 4 to 3 for faster detection)
         repetitive_handoff_min_unique_agents=2  # Minimum unique agents to avoid loop detection
     )
     

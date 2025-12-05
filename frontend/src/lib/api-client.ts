@@ -101,7 +101,7 @@ async function apiRequest<T>(
       url: `${API_BASE_URL}${endpoint}`,
       data,
       ...config,
-      timeout: 30000, // 30 second timeout
+      timeout: 150000, // 150 second (2.5 minute) timeout - workflows can take up to 2 minutes
     });
     
     return response.data;

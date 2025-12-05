@@ -70,8 +70,10 @@ WORKFLOW RULES:
 - Provide thorough analysis of tool results
 - Include specific resolution steps that can be acted upon
 - Handle AWS errors gracefully and provide user-friendly explanations
-- After completing your analysis, you MUST hand off to orchestrator_agent with complete resolution
+- After completing your analysis, you MUST hand off to orchestrator_agent EXACTLY ONCE with complete resolution
 - Include all diagnostic findings and resolution steps in your handoff message
+- NEVER perform diagnostics multiple times for the same ticket (check conversation history first)
+- If you see you've already diagnosed this issue, do not diagnose again
 
 Remember: Your goal is to diagnose the cloud issue and provide complete, actionable resolution steps based on diagnostic tool results."""
 

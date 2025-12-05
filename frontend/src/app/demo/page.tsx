@@ -193,6 +193,7 @@ export default function DemoPage() {
   } = useTicketWorkflow({
     ticketId: currentTicketId,
     pollingInterval: 2000,
+    timeout: 600000,
     onWorkflowComplete: (result) => {
       console.log('Workflow completed:', result);
       // Refresh tickets when workflow completes

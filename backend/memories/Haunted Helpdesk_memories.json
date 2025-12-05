@@ -1,0 +1,23 @@
+[
+  {
+    "id": "mem_1_20251205220113",
+    "query": "s3 bucket vanished",
+    "resolution": "Diagnostic analysis found 1 accessible bucket (demo-superops-bucket) in us-west-1 region. Possible root causes identified: wrong AWS account, bucket name changes, lost IAM permissions, or incorrect region. Resolution steps include: 1) Verify exact bucket name with user 2) Confirm AWS account ownership 3) Check IAM permissions 4) Verify correct region (us-west-1). Current accessible bucket is demo-superops-bucket in us-west-1 region.",
+    "timestamp": "2025-12-05T22:01:13.669152",
+    "keywords": [
+      "bucket",
+      "vanished"
+    ]
+  },
+  {
+    "id": "mem_2_20251205221357",
+    "query": "hauntedbucket s3 bucket is not connecting",
+    "resolution": "S3 bucket 'hauntedbucket' diagnosis complete. Key findings: 1) Bucket exists but returns 403 Access Denied 2) Unable to list bucket/get location due to permissions 3) Bucket not visible in account list. Resolution requires: Verify AWS credentials, review IAM permissions (s3:GetBucketLocation, s3:ListBucket, s3:GetObject), check bucket policy, verify cross-account access.",
+    "timestamp": "2025-12-05T22:13:57.808230",
+    "keywords": [
+      "hauntedbucket",
+      "bucket",
+      "connecting"
+    ]
+  }
+]
