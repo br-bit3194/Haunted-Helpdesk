@@ -1077,7 +1077,7 @@ Check the séance log in the UI or review backend console output for detailed ha
 
 ```bash
 # Test DynamoDB connection
-python -c "from backend.dynamodb_utils import db_manager; print(db_manager.list_tickets())"
+python -c "from dynamodb_utils import db_manager; print(db_manager.list_tickets())"
 
 # Test memory agent
 python -c "from agents.memory_agent import retrieve_memory; print(retrieve_memory('test query'))"
