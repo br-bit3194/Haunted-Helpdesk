@@ -7,7 +7,7 @@ Analyzes S3 bucket issues and provides resolution steps for cloud service proble
 
 from strands.agent import Agent
 from strands.models.bedrock import BedrockModel
-from backend.tools.cloud_tools import list_all_buckets, get_bucket_location, check_bucket_exists
+from tools.cloud_tools import list_all_buckets, get_bucket_location, check_bucket_exists
 
 
 def create_cloud_service_agent() -> Agent:

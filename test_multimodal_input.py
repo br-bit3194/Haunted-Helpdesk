@@ -35,7 +35,7 @@ def test_function_signatures():
     
     try:
         # Import the module
-        from backend.multimodal_input import (
+        from multimodal_input import (
             create_image_analysis_agent,
             process_multimodal_input
         )
@@ -72,7 +72,7 @@ def test_text_only_processing():
     print("\nTesting text-only processing...")
     
     try:
-        from backend.multimodal_input import process_multimodal_input
+        from multimodal_input import process_multimodal_input
         
         # Test with text only
         text = "Server is not responding to HTTP requests on port 80"
@@ -108,7 +108,7 @@ def test_output_format():
     print("\nTesting output format...")
     
     try:
-        from backend.multimodal_input import process_multimodal_input
+        from multimodal_input import process_multimodal_input
         
         text = "Database connection timeout error"
         result = process_multimodal_input(text)
@@ -142,7 +142,7 @@ def test_error_handling():
     print("\nTesting error handling...")
     
     try:
-        from backend.multimodal_input import process_multimodal_input
+        from multimodal_input import process_multimodal_input
         
         # Test with non-existent image path
         text = "Error screenshot attached"

@@ -18,9 +18,9 @@ import shutil
 import logging
 
 # Import Haunted Helpdesk components
-from backend.dynamodb_utils import db_manager
-from backend.Helpdesk_swarm import create_Haunted_Helpdesk_swarm
-from backend.multimodal_input import process_multimodal_input
+from dynamodb_utils import db_manager
+from Helpdesk_swarm import create_Haunted_Helpdesk_swarm
+from multimodal_input import process_multimodal_input
 
 # Configure logging
 logging.basicConfig(

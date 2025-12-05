@@ -7,7 +7,7 @@ Analyzes connectivity, routing, and DNS issues to provide root cause analysis.
 
 from strands.agent import Agent
 from strands.models.bedrock import BedrockModel
-from backend.tools.network_tools import ping_host, traceroute_host, check_dns_resolution
+from tools.network_tools import ping_host, traceroute_host, check_dns_resolution
 
 
 def create_network_diagnostic_agent() -> Agent:
