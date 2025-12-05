@@ -1,0 +1,13 @@
+{
+  "enabled": true,
+  "name": "Format Code (Manual)",
+  "description": "Manually formats all Python files in the backend directory using Black formatter",
+  "version": "1",
+  "when": {
+    "type": "userTriggered"
+  },
+  "then": {
+    "type": "runCommand",
+    "command": "python -m black backend/"
+  }
+}
