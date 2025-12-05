@@ -46,10 +46,7 @@ app = FastAPI(
 # Configure CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",  # Next.js frontend
-        "http://localhost:8000",  # FastAPI backend (for testing)
-    ],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],  # Allow all HTTP methods
     allow_headers=["*"],  # Allow all headers
@@ -555,12 +552,27 @@ Created: {ticket['created_at']}
                     if not handoff_sequence or handoff_sequence[-1] != message.agent_name:
                         handoff_sequence.append(message.agent_name)
         
+        # Extract summary from conversation history
+        summary = None
+        if hasattr(result, 'conversation_history') and result.conversation_history:
+            for msg in result.conversation_history:
+                if hasattr(msg, 'agent_name') and msg.agent_name == 'summarization_agent':
+                    if hasattr(msg, 'content'):
+                        # Extract summary content (remove WORKFLOW_COMPLETE marker if present)
+                        content = msg.content
+                        if "WORKFLOW_COMPLETE" in content:
+                            summary = content.split("WORKFLOW_COMPLETE")[0].strip()
+                        else:
+                            summary = content.strip()
+                        break
+        
         # Build workflow result
         workflow_result = {
             "final_response": result.final_response if hasattr(result, 'final_response') else str(result),
             "handoff_sequence": handoff_sequence,
             "execution_time": execution_time,
-            "status": "completed"
+            "status": "completed",
+            "summary": summary  # Add summary as separate field
         }
         
         # Add conversation history if available
