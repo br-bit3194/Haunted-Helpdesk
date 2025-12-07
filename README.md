@@ -4,6 +4,9 @@
 
 Haunted Helpdesk is an AI-powered multi-agent IT operations platform that automates incident resolution using intelligent agent workflows with persistent memory capabilities. The system leverages AWS Bedrock (Claude 3.5 Sonnet), the Strands multi-agent framework, DynamoDB for ticket storage, and a Next.js frontend with a Halloween-themed interface.
 
+## Demo link:
+https://youtu.be/zpcPE82zI8c?si=3IDCz2g0yQRCGkig
+
 ## 🦇 Architecture Overview
 
 Haunted Helpdesk uses a multi-agent architecture powered by the Strands framework and AWS Bedrock. The platform orchestrates six specialized agents that work together to resolve IT incidents through structured handoffs and persistent memory.
